@@ -69,6 +69,31 @@ namespace WebAppEmployeeApi.Services.RepServices
             return result;
         }
 
+        //public async Task<bool> UpdateAsync(UpdateEmployeeRequestModel req)
+        //{
+        //    bool empUpdated = await _employeeRepository.UpdateAsync(req);
+        //    if (!empUpdated)
+        //        return false;
+
+        //    if (req.Addresses != null)
+        //    {
+        //        foreach (var addr in req.Addresses)
+        //        {
+        //            addr.EmployeeId = req.Employee.EmployeeId;
+
+        //            if (addr.Id == 0)
+        //            {
+        //                await _addressApiClient.CreateAddressAsync(addr);
+        //            }
+        //            else
+        //            {
+        //                await _addressApiClient.UpdateAddressAsync(addr);
+        //            }
+        //        }
+        //    }
+
+        //    return true;
+        //}
 
         public async Task<(List<EmployeeModel> employees,int totalCount)> GetAllAsync(int pageNumber, int pageSize)
             => await _employeeRepository.GetAllAsync(pageNumber, pageSize);

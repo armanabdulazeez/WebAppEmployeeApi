@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using WebAppEmployeeApi.Domain.Models;
 
@@ -38,5 +39,41 @@ namespace WebAppEmployeeApi.Services.RepServices
             var json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<List<EmployeeAddressModel>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
+
+        public async Task<bool> UpdateAddressAsync(EmployeeAddressModel model)
+        {
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+            }
+
+            var response = await _httpClient.PutAsJsonAsync(
+                $"api/EmployeesAddress/UpdateAddress/{model.Id}",
+                model
+            );
+
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> CreateAddressAsync(EmployeeAddressModel model)
+        {
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+            }
+
+            var response = await _httpClient.PostAsJsonAsync(
+                "api/EmployeesAddress/CreateAddress",
+                model
+            );
+
+            return response.IsSuccessStatusCode;
+        }
+
+
     }
 }

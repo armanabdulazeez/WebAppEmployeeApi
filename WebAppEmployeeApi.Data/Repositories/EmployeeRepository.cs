@@ -121,13 +121,26 @@ namespace WebAppEmployeeApi.Data.Repositories
             return employee.ToModel();
         }
 
-        public async Task<bool> UpdateAsync(EmployeeModel model)
+        public async Task<bool> UpdateAsync(UpdateEmployeeRequestModel model)
         {
-            var employee = await _context.Employees.FindAsync(model.EmployeeId);
+            var employee = await _context.Employees
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(e => e.EmployeeId == model.Employee.EmployeeId);
             if (employee == null)
                 return false;
 
-            employee.FromModel(model);
+            employee.FullName = model.Employee.FullName;
+            employee.Department = model.Employee.Department;
+            employee.Designation = model.Employee.Designation;
+            employee.Salary = model.Employee.Salary;
+            employee.JoinDate = model.Employee.JoinDate;
+
+            if (employee.User != null)
+            {
+                employee.User.Username = model.Employee.User.Username;
+                employee.User.Role = model.Employee.User.Role;
+            }
+
             _context.Employees.Update(employee);
             bool result = await _context.SaveChangesAsync() > 0;
             return result;
@@ -179,6 +192,9 @@ namespace WebAppEmployeeApi.Data.Repositories
             return await query.CountAsync();
         }
 
-
+        public Task<bool> UpdateAsync(EmployeeModel model)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

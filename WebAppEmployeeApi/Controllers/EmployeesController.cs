@@ -107,14 +107,14 @@ namespace WebAppEmployeeApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<EmployeeViewModel>> GetById(int id)
         {
-            EmployeeModel employeeModel = await _employeeService.GetByIdAsync(id);
+            EmployeeModel? employeeModel = await _employeeService.GetByIdAsync(id);
             if (employeeModel == null)
                 return NotFound("Employee not found");
 
-            EmployeeViewModel employeeViewModel = EmployeeViewModel.FromModel(employeeModel);
+            EmployeeViewModel? employeeViewModel = EmployeeViewModel.FromModel(employeeModel);
             return Ok(employeeViewModel);
 
         }
@@ -180,6 +180,20 @@ namespace WebAppEmployeeApi.Controllers
             }
 
         }
+
+        //[HttpPut("UpdateEmployeeFull")]
+        //[HttpPut("UpdateEmployee/{id}")]
+        //public async Task<IActionResult> UpdateEmployeeFull([FromBody] UpdateEmployeeRequestEntryModel request)
+        //{
+        //    if (id != employeeEntryModel.EmployeeId)
+        //        return BadRequest("Employee ID mismatch.");
+        //        bool result = await _employeeService.UpdateAsync(request);
+
+        //    if (!result)
+        //        return NotFound("Employee not found");
+
+        //    return NoContent();
+        //}
 
         [HttpDelete("DeleteEmployee/{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
