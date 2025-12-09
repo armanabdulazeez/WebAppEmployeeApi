@@ -30,66 +30,142 @@ namespace WebAppEmployeeApi.Data.Repositories
             return (employees,totalCount);
         }
 
-        public async Task<PaginatedResponse<EmployeeModel>> GetAllPagedAsync(int pageNumber,int pageSize,string? search,string? sortColumn,string? sortDirection)
+        //public async Task<PaginatedResponse<EmployeeModel>> GetAllPagedAsync(int pageNumber, int pageSize, string? search, string? sortColumn, string? sortDirection)
+        //{
+        //    var query = _context.Employees
+        //        .AsNoTracking()
+        //        .Include(e => e.User)
+        //        .AsQueryable();
+
+        //    if (!string.IsNullOrWhiteSpace(search))
+        //    {
+        //        string s = search.Trim();
+        //        query = query.Where(e =>
+        //            e.FullName.Contains(s) ||
+        //            (e.Department != null && e.Department.Contains(s)) ||
+        //            (e.Designation != null && e.Designation.Contains(s)) ||
+        //            (e.User != null && e.User.Username.Contains(s))
+        //        );
+        //    }
+
+        //    var totalCount = await query.CountAsync();
+
+        //    bool isAscending = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
+        //    if (!string.IsNullOrWhiteSpace(sortColumn))
+        //    {
+        //        switch (sortColumn)
+        //        {
+        //            case "employeeId":
+        //                query = isAscending ? query.OrderBy(e => e.EmployeeId) : query.OrderByDescending(e => e.EmployeeId);
+        //                break;
+        //            case "fullName":
+        //                query = isAscending ? query.OrderBy(e => e.FullName) : query.OrderByDescending(e => e.FullName);
+        //                break;
+        //            case "department":
+        //                query = isAscending ? query.OrderBy(e => e.Department) : query.OrderByDescending(e => e.Department);
+        //                break;
+        //            case "designation":
+        //                query = isAscending ? query.OrderBy(e => e.Designation) : query.OrderByDescending(e => e.Designation);
+        //                break;
+        //            case "salary":
+        //                query = isAscending ? query.OrderBy(e => e.Salary) : query.OrderByDescending(e => e.Salary);
+        //                break;
+        //            case "joinDate":
+        //                query = isAscending ? query.OrderBy(e => e.JoinDate) : query.OrderByDescending(e => e.JoinDate);
+        //                break;
+        //            case "user.username":
+        //                query = isAscending ? query.OrderBy(e => e.User.Username) : query.OrderByDescending(e => e.User.Username);
+        //                break;
+        //            default:
+        //                query = query.OrderBy(e => e.EmployeeId);
+        //                break;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        query = query.OrderBy(e => e.EmployeeId);
+        //    }
+
+        //    var items = await query
+        //        .Skip((pageNumber - 1) * pageSize)
+        //        .Take(pageSize)
+        //        .Select(e => e.ToModel())
+        //        .ToListAsync();
+
+        //    return new PaginatedResponse<EmployeeModel>
+        //    {
+        //        FromCache = false,
+        //        TotalCount = totalCount,
+        //        PageNumber = pageNumber,
+        //        PageSize = pageSize,
+        //        Data = items
+        //    };
+        //}
+
+        public async Task<PaginatedResponse<EmployeeModel>> GetAllPagedAsync(int pageNumber, int pageSize, string? search, string? sortColumn, string? sortDirection)
         {
-            var query = _context.Employees
+            var query = _context.Users
+                .Where(u => u.Role != "Admin")
                 .AsNoTracking()
-                .Include(e => e.User)
+                .Include(u => u.Employee)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 string s = search.Trim();
-                query = query.Where(e =>
-                    e.FullName.Contains(s) ||
-                    (e.Department != null && e.Department.Contains(s)) ||
-                    (e.Designation != null && e.Designation.Contains(s)) ||
-                    (e.User != null && e.User.Username.Contains(s))
+                query = query.Where(u =>
+                    u.Username.Contains(s) ||
+                    (u.Employee != null && (
+                        u.Employee.FullName.Contains(s) ||
+                        (u.Employee.Department != null && u.Employee.Department.Contains(s)) ||
+                        (u.Employee.Designation != null && u.Employee.Designation.Contains(s))
+                    ))
                 );
             }
 
             var totalCount = await query.CountAsync();
 
-            bool isAscending  = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
+            bool isAscending = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
+
             if (!string.IsNullOrWhiteSpace(sortColumn))
             {
-                switch (sortColumn)
+                query = sortColumn switch
                 {
-                    case "employeeId":
-                        query = isAscending ? query.OrderBy(e => e.EmployeeId) : query.OrderByDescending(e => e.EmployeeId);
-                        break;
-                    case "fullName":
-                        query = isAscending ? query.OrderBy(e => e.FullName) : query.OrderByDescending(e => e.FullName);
-                        break;
-                    case "department":
-                        query = isAscending ? query.OrderBy(e => e.Department) : query.OrderByDescending(e => e.Department);
-                        break;
-                    case "designation":
-                        query = isAscending ? query.OrderBy(e => e.Designation) : query.OrderByDescending(e => e.Designation);
-                        break;
-                    case "salary":
-                        query = isAscending ? query.OrderBy(e => e.Salary) : query.OrderByDescending(e => e.Salary);
-                        break;
-                    case "joinDate":
-                        query = isAscending ? query.OrderBy(e => e.JoinDate) : query.OrderByDescending(e => e.JoinDate);
-                        break;
-                    case "user.username":
-                        query = isAscending ? query.OrderBy(e => e.User.Username) : query.OrderByDescending(e => e.User.Username);
-                        break;
-                    default:
-                        query = query.OrderBy(e => e.EmployeeId);
-                        break;
-                }
+                    "username" => isAscending ? query.OrderBy(u => u.Username) : query.OrderByDescending(u => u.Username),
+                    "fullName" => isAscending ? query.OrderBy(u => u.Employee!.FullName) : query.OrderByDescending(u => u.Employee!.FullName),
+                    "department" => isAscending ? query.OrderBy(u => u.Employee!.Department) : query.OrderByDescending(u => u.Employee!.Department),
+                    "designation" => isAscending ? query.OrderBy(u => u.Employee!.Designation) : query.OrderByDescending(u => u.Employee!.Designation),
+                    "salary" => isAscending ? query.OrderBy(u => u.Employee!.Salary) : query.OrderByDescending(u => u.Employee!.Salary),
+                    "joinDate" => isAscending ? query.OrderBy(u => u.Employee!.JoinDate) : query.OrderByDescending(u => u.Employee!.JoinDate),
+                    _ => query.OrderBy(u => u.UserId)
+                };
             }
             else
             {
-                query = query.OrderBy(e => e.EmployeeId);
+                query = query.OrderBy(u => u.UserId);
             }
 
             var items = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(e => e.ToModel())
+                .Select(u => new EmployeeModel
+                {
+                    EmployeeId = u.Employee != null ? u.Employee.EmployeeId : 0,
+                    FullName = u.Employee != null ? u.Employee.FullName : "",
+                    Department = u.Employee.Department,
+                    Designation = u.Employee.Designation,
+                    Salary = u.Employee != null ? u.Employee.Salary : 0,
+                    JoinDate = u.Employee != null ? u.Employee.JoinDate : DateTime.MinValue,
+                    UserId = u.UserId,
+
+                    User = new UserModel
+                    {
+                        UserId = u.UserId,
+                        Username = u.Username,
+                        Role = u.Role,
+                        Password = u.Password
+                    }
+                })
                 .ToListAsync();
 
             return new PaginatedResponse<EmployeeModel>
@@ -174,23 +250,48 @@ namespace WebAppEmployeeApi.Data.Repositories
             return false;
         }
 
+        //public async Task<int> GetCountAsync(string? search)
+        //{
+        //    var query = _context.Employees.AsQueryable();
+
+        //    if (!string.IsNullOrWhiteSpace(search))
+        //    {
+        //        string s = search.Trim();
+        //        query = query.Where(e =>
+        //            e.FullName.Contains(s) ||
+        //            (e.Department != null && e.Department.Contains(s)) ||
+        //            (e.Designation != null && e.Designation.Contains(s)) ||
+        //            (e.User != null && e.User.Username.Contains(s))
+        //        );
+        //    }
+
+        //    return await query.CountAsync();
+        //}
+
         public async Task<int> GetCountAsync(string? search)
         {
-            var query = _context.Employees.AsQueryable();
+            var query = _context.Users
+                .AsNoTracking()
+                .Include(u => u.Employee)
+                .Where(u => u.Role != "Admin")  
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 string s = search.Trim();
-                query = query.Where(e =>
-                    e.FullName.Contains(s) ||
-                    (e.Department != null && e.Department.Contains(s)) ||
-                    (e.Designation != null && e.Designation.Contains(s)) ||
-                    (e.User != null && e.User.Username.Contains(s))
+                query = query.Where(u =>
+                    u.Username.Contains(s) ||
+                    (u.Employee != null && (
+                        u.Employee.FullName.Contains(s) ||
+                        (u.Employee.Department != null && u.Employee.Department.Contains(s)) ||
+                        (u.Employee.Designation != null && u.Employee.Designation.Contains(s))
+                    ))
                 );
             }
 
             return await query.CountAsync();
         }
+
 
         public Task<bool> UpdateAsync(EmployeeModel model)
         {
