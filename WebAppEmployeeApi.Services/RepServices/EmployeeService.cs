@@ -32,8 +32,16 @@ namespace WebAppEmployeeApi.Services.RepServices
             if (employee == null)
                 return null;
 
-            var addresses = await _addressApiClient.GetAddressByEmpIdAsync(employeeId);
-            employee.Addresses = addresses ?? new List<EmployeeAddressModel>();
+            if (employee.EmployeeId > 0)
+            {
+                var addresses = await _addressApiClient.GetAddressByEmpIdAsync(employeeId);
+                employee.Addresses = addresses ?? new List<EmployeeAddressModel>();
+            }
+            else
+            {
+                employee.Addresses = new List<EmployeeAddressModel>();
+            }
+
 
             return employee;
         }
@@ -103,6 +111,9 @@ namespace WebAppEmployeeApi.Services.RepServices
 
         public async Task<bool> UpdateAsync(EmployeeModel employeeModel)
             => await _employeeRepository.UpdateAsync(employeeModel);
+
+        public async Task<bool> UpsertAsync(EmployeeModel employeeModel)
+            => await _employeeRepository.UpsertAsync(employeeModel);
 
         public bool TryGetDesignation(int empId, out string designation)
             => _employeeRepository.TryGetDesignationById(empId, out designation);

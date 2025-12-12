@@ -10,7 +10,7 @@ namespace WebAppEmployeeApi.Domain.Services
         Task<EmployeeModel?> GetByIdAsync(int id);
         Task<EmployeeModel> AddAsync(EmployeeModel model);
         Task<bool> UpdateAsync(EmployeeModel model);
-        //Task<bool> UpdateAsync(UpdateEmployeeRequestModel model);
+        Task<bool> UpsertAsync(EmployeeModel model);
         Task<bool> DeleteAsync(int id);
         bool TryGetDesignation(int empId, out string designation);
 

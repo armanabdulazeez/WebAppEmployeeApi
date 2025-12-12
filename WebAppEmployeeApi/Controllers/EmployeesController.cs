@@ -178,22 +178,28 @@ namespace WebAppEmployeeApi.Controllers
             {
                 return NotFound(new { message = "Employee not found or could not be updated." });
             }
-
         }
 
-        //[HttpPut("UpdateEmployeeFull")]
-        //[HttpPut("UpdateEmployee/{id}")]
-        //public async Task<IActionResult> UpdateEmployeeFull([FromBody] UpdateEmployeeRequestEntryModel request)
-        //{
-        //    if (id != employeeEntryModel.EmployeeId)
-        //        return BadRequest("Employee ID mismatch.");
-        //        bool result = await _employeeService.UpdateAsync(request);
+        [HttpPut("UpsertEmployee/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> UpsertEmployeeAsync(int id, [FromBody] EmployeeEntryModel employeeEntryModel)
+        {
+            if (id != employeeEntryModel.EmployeeId)
+                return BadRequest("Employee ID mismatch.");
 
-        //    if (!result)
-        //        return NotFound("Employee not found");
+            var employeeModel = employeeEntryModel.ToModel();
+            bool result = await _employeeService.UpsertAsync(employeeModel);
 
-        //    return NoContent();
-        //}
+            if (result)
+            {
+                _cacheService.ClearAll();
+                return NoContent();
+            }
+
+            return NotFound(new { message = "Employee could not be upserted." });
+        }
+
+
 
         [HttpDelete("DeleteEmployee/{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

@@ -11,6 +11,7 @@ namespace WebAppEmployeeApi.ViewModels
         public decimal Salary { get; set; }
         public DateTime JoinDate { get; set; }
 
+        public int UserId {  get; set; }
         public string Username { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public List<EmployeeAddressViewModel?>? Addresses { get; set; }
@@ -27,6 +28,7 @@ namespace WebAppEmployeeApi.ViewModels
                     Designation = employeeModel.Designation,
                     Salary = employeeModel.Salary,
                     JoinDate = employeeModel.JoinDate,
+                    UserId = employeeModel.UserId,
                     Username = employeeModel.User?.Username ?? string.Empty,
                     Role = employeeModel.User?.Role ?? string.Empty,
                     Addresses = employeeModel.Addresses?

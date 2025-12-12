@@ -113,10 +113,31 @@ namespace WebAppEmployeeApi.Data.Repositories
             var employee = await _context.Employees
                 .AsNoTracking()
                 .Include(e => e.User)
-                .FirstOrDefaultAsync(e => e.EmployeeId == id);
+                .FirstOrDefaultAsync(e => e.UserId == id);
 
-            return employee.ToModel();
+            if (employee != null)
+                return employee.ToModel();
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+                return null;
+
+            return new EmployeeModel
+            {
+                EmployeeId = 0,             
+                UserId = user.UserId,         
+                FullName = "",
+                Department = "",
+                Designation = "",
+                Salary = 0,
+                JoinDate = DateTime.MinValue,
+                Addresses = new List<EmployeeAddressModel>()
+            };
         }
+
 
         public async Task<EmployeeModel> AddAsync(EmployeeModel model)
         {
@@ -150,6 +171,59 @@ namespace WebAppEmployeeApi.Data.Repositories
             bool result = await _context.SaveChangesAsync() > 0;
             return result;
         }
+
+        public async Task<bool> UpsertAsync(EmployeeModel model)
+        {
+            Employee? employee;
+
+            if (model.EmployeeId == 0)
+            {
+                employee = new Employee
+                {
+                    FullName = model.FullName,
+                    Department = model.Department,
+                    Designation = model.Designation,
+                    Salary = model.Salary,
+                    JoinDate = model.JoinDate,
+                    UserId = model.UserId
+                };
+
+                _context.Employees.Add(employee);
+            }
+            else
+            {
+                employee = await _context.Employees
+                    .Include(e => e.User)
+                    .FirstOrDefaultAsync(e => e.EmployeeId == model.EmployeeId);
+
+                if (employee == null)
+                {
+                    employee = new Employee
+                    {
+                        FullName = model.FullName,
+                        Department = model.Department,
+                        Designation = model.Designation,
+                        Salary = model.Salary,
+                        JoinDate = model.JoinDate,
+                        UserId = model.UserId
+                    };
+                    _context.Employees.Add(employee);
+                }
+                else
+                {
+                    employee.FullName = model.FullName;
+                    employee.Department = model.Department;
+                    employee.Designation = model.Designation;
+                    employee.Salary = model.Salary;
+                    employee.JoinDate = model.JoinDate;
+
+                    _context.Employees.Update(employee);
+                }
+            }
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
 
         public async Task<bool> DeleteAsync(int id)
         {
